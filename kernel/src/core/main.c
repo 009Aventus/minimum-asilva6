@@ -1,6 +1,10 @@
 #include "minemu/boot.h"
 #include "minemu/trap.h"
 #include "minemu/trace.h"
+#include "minemu/irq.h"
+#include "minemu/kprintf.h"
+#include "minemu/msh.h"
+#include "minemu/uart.h"
 
 void minemu_kernel_main(const struct minemu_boot_info *boot_info) {
     if ((uintptr_t)boot_info != MINEMU_BOOT_INFO_VADDR ||
@@ -15,5 +19,12 @@ void minemu_kernel_main(const struct minemu_boot_info *boot_info) {
         minemu_fail_stop();
     }
     minemu_trace_event(1);
-    minemu_fail_stop();
+
+    /* Part 1: kernel-mode hello world over UART0. */
+    kprintf("hello world\n");
+
+    /* Part 2: enable UART0 RX interrupts, unmask IRQs, then run the shell. */
+    uart_init();
+    minemu_irq_enable();
+    msh_run();
 }

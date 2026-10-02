@@ -6,7 +6,13 @@ BUILD := build
 KERNEL := $(BUILD)/minimum-kernel.elf
 RUNTIME := $(BUILD)/libminemu_kernel.a
 
-CORE_OBJECT := $(BUILD)/core/main.o
+CORE_OBJECT := \
+	$(BUILD)/core/main.o \
+	$(BUILD)/core/irq.o \
+	$(BUILD)/core/irq_trampoline.o \
+	$(BUILD)/core/kprintf.o \
+	$(BUILD)/core/msh.o \
+	$(BUILD)/drivers/uart.o
 RUNTIME_OBJECTS := \
 	$(BUILD)/runtime/block.o \
 	$(BUILD)/runtime/exception.o \
@@ -62,6 +68,14 @@ $(KERNEL): $(CORE_OBJECT) $(RUNTIME) linker/kernel.ld
 	$(CC) $(LDFLAGS) $(CORE_OBJECT) $(RUNTIME) $(LIBGCC) -o $@
 
 $(BUILD)/core/%.o: src/core/%.c
+	@mkdir -p $(dir $@)
+	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
+
+$(BUILD)/core/%.o: src/core/%.S
+	@mkdir -p $(dir $@)
+	$(CC) $(CPPFLAGS) $(ASFLAGS) -c $< -o $@
+
+$(BUILD)/drivers/%.o: src/drivers/%.c
 	@mkdir -p $(dir $@)
 	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
 

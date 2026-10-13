@@ -14,7 +14,6 @@
 #include "minemu/syscall.h"
 #include "minemu/trace.h"
 #include "minemu/trap.h"
-#include "minemu/uart.h"
 #include "minemu/user.h"
 #include "minemu/user_abi.h"
 
@@ -75,18 +74,12 @@ static int32_t uart_read_bytes(volatile struct minemu_uart_regs *uart, char *dst
                                uint32_t n) {
     uint32_t count = 0;
     while (count < n) {
-        int c;
-        if (uart == MINEMU_UART0) {
-            c = uart_getc(); /* UART0 input arrives via the HW1 IRQ ring buffer */
-        } else if (uart->status & MINEMU_UART_STATUS_RX_READY) {
-            c = (int)(uart->rx_data & 0xffu); /* UART1 is polled directly */
-        } else {
-            c = -1;
-        }
-        if (c < 0) {
+        /* Take only what the UART already has buffered; never wait. The user
+         * program decides whether to ask again (msh polls in a loop). */
+        if ((uart->status & MINEMU_UART_STATUS_RX_READY) == 0) {
             break; /* no more data available right now */
         }
-        dst[count++] = (char)c;
+        dst[count++] = (char)(uart->rx_data & 0xffu);
     }
     return (int32_t)count;
 }

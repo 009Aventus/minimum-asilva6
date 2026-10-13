@@ -1,7 +1,6 @@
 #include "minemu/boot.h"
 #include "minemu/trap.h"
 #include "minemu/trace.h"
-#include "minemu/uart.h"
 #include "minemu/user.h"
 
 void minemu_kernel_main(const struct minemu_boot_info *boot_info) {
@@ -16,10 +15,6 @@ void minemu_kernel_main(const struct minemu_boot_info *boot_info) {
         minemu_trace_event(UINT32_C(0xb007bad0));
         minemu_fail_stop();
     }
-
-    /* UART0 input is interrupt driven (HW1 driver); enable its RX IRQ. IRQs
-     * are unmasked for the user program by minemu_enter_user (SPSR = USR). */
-    uart_init();
 
     /* Load the user program and drop into user mode. */
     uint32_t entry = 0;

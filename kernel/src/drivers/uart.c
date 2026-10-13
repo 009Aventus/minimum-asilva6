@@ -59,11 +59,17 @@ void uart_irq_handler(void) {
  */
 int uart_getc(void) {
     int c = -1;
+    /* Save the current IRQ mask instead of blindly re-enabling: syscalls call
+     * this from SVC mode, where IRQs are already masked and must stay masked. */
+    uint32_t cpsr;
+    __asm__ volatile("mrs %0, cpsr" : "=r"(cpsr));
     minemu_irq_disable();
     if (rx_tail != rx_head) {
         c = (unsigned char)rx_buf[rx_tail];
         rx_tail = (rx_tail + 1u) & (RX_BUF_SIZE - 1u);
     }
-    minemu_irq_enable();
+    if ((cpsr & UINT32_C(0x80)) == 0) { /* I bit was clear: IRQs were on */
+        minemu_irq_enable();
+    }
     return c;
 }

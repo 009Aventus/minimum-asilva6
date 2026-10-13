@@ -10,6 +10,10 @@ CORE_OBJECT := \
 	$(BUILD)/core/main.o \
 	$(BUILD)/core/irq.o \
 	$(BUILD)/core/irq_trampoline.o \
+	$(BUILD)/core/svc_trampoline.o \
+	$(BUILD)/core/enter_user.o \
+	$(BUILD)/core/user_loader.o \
+	$(BUILD)/core/syscall.o \
 	$(BUILD)/core/kprintf.o \
 	$(BUILD)/core/msh.o \
 	$(BUILD)/drivers/uart.o
@@ -27,6 +31,7 @@ DEPENDENCIES := $(OBJECTS:.o=.d)
 ARCH_FLAGS := -mcpu=cortex-a9 -marm -mfloat-abi=soft
 CPPFLAGS := -Iinclude
 CFLAGS := $(ARCH_FLAGS) \
+	-O2 \
 	-ffreestanding \
 	-fno-builtin \
 	-fdata-sections \
